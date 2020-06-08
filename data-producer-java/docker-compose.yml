@@ -1,0 +1,37 @@
+version: "3"
+services:
+  localstack:
+    image: localstack/localstack:latest
+    hostname: localstack
+    ports:
+      - '4563-4599:4563-4599'
+      - '8055:8080'
+    environment:
+#      - SERVICES=${SERVICES:-dynamodb, kinesis, sqs, ssm, cloudwatch}
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+#      - USE_SSL=${USE_SSL:-true}
+    volumes:
+      - './.localstack:/tmp/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+
+  data-producer-java:
+#    image: data-producer-java:latest
+    hostname: data-producer-java
+    restart: unless-stopped
+    ports:
+      - 8001:8080
+    environment:
+      KINESIS_ENDPOINT_URL: https://localstack:4568
+      KINESIS_STREAM_NAME: datascience-local-feed
+      AWS_ACCESS_KEY_ID: "foobar"
+      AWS_SECRET_ACCESS_KEY: "foobar"
+      #AWS_SESSION_TOKEN: ""
+      AWS_REGION: us-east-1
+      SNS_ENDPOINT_URL: https://localstack:4575
+      TREASURY_RATES_UPDATED_TOPIC_ARN: arn:aws:sns:us-east-1:000000000000:datascience-local-treasury-rates-updated
+    depends_on:
+      - localstack
+
+
+
